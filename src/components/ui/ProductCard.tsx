@@ -15,9 +15,18 @@ const ProductCard: React.FC<ProductCardProps> = ({
 }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isImageLoaded, setIsImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
   
   // Determine if there are multiple images to show
   const hasMultipleImages = product.images.length > 1;
+  
+  // Get the primary image to display
+  const primaryImage = imageError 
+    ? 'https://images.unsplash.com/photo-1525507119028-ed4c629a60a3?q=80&w=3087&auto=format&fit=crop' 
+    : product.images[0];
+  
+  // Get the secondary image for hover effect
+  const secondaryImage = hasMultipleImages ? product.images[1] : null;
   
   // Calculate star rating
   const renderStars = () => {
@@ -52,6 +61,12 @@ const ProductCard: React.FC<ProductCardProps> = ({
     );
   };
 
+  // Handle image error
+  const handleImageError = () => {
+    console.log(`Image load error for product: ${product.id}`);
+    setImageError(true);
+  };
+
   return (
     <div 
       className={`group block ${variant === 'compact' ? 'w-full' : 'w-full'}`}
@@ -62,24 +77,26 @@ const ProductCard: React.FC<ProductCardProps> = ({
         <div className="relative overflow-hidden rounded-lg bg-gray-100 aspect-[3/4] mb-3">
           {/* Image loading skeleton */}
           {!isImageLoaded && (
-            <div className="absolute inset-0 image-loading"></div>
+            <div className="absolute inset-0 bg-gray-200 animate-pulse"></div>
           )}
           
           {/* Main image */}
           <img
-            src={product.images[0]}
+            src={primaryImage}
             alt={product.name}
             className={`w-full h-full object-cover transition-all duration-300 ${isImageLoaded ? 'opacity-100' : 'opacity-0'} group-hover:scale-105`}
             onLoad={() => setIsImageLoaded(true)}
+            onError={handleImageError}
             loading="lazy"
           />
           
           {/* Second image for hover effect */}
-          {hasMultipleImages && (
+          {secondaryImage && !imageError && (
             <img
-              src={product.images[1]}
+              src={secondaryImage}
               alt={`${product.name} - alternate view`}
               className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${isHovered && isImageLoaded ? 'opacity-100' : 'opacity-0'}`}
+              onError={handleImageError}
               loading="lazy"
             />
           )}

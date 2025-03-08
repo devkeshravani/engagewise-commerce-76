@@ -149,6 +149,165 @@ export const categories: Category[] = [
   }
 ];
 
+// Predefined high-quality images for specific categories
+const categoryImages = {
+  'Blouses': [
+    'https://images.unsplash.com/photo-1552160793-cbae2e9441c3?q=80&w=2187&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1582220107109-40be22b9939c?q=80&w=2187&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1559583109-3e7968136c99?q=80&w=3087&auto=format&fit=crop'
+  ],
+  'Casual Bottoms': [
+    'https://images.unsplash.com/photo-1560243563-062bfc001d68?q=80&w=2970&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1542272604-787c3835535d?q=80&w=2926&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?q=80&w=3087&auto=format&fit=crop'
+  ],
+  'Chemises': [
+    'https://images.unsplash.com/photo-1622260614153-03223fb73af9?q=80&w=3270&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1602241628512-459cdd3234fe?q=80&w=3056&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1616350326303-27e8bad156d7?q=80&w=2970&auto=format&fit=crop'
+  ],
+  'Dresses': [
+    'https://images.unsplash.com/photo-1614676471928-2ed0ad1061a4?q=80&w=2187&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1612336307429-8a898d10e223?q=80&w=2187&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1606406054219-619c4c2e2100?q=80&w=2271&auto=format&fit=crop'
+  ],
+  'Fine Gauge': [
+    'https://images.unsplash.com/photo-1516762689617-e1cffcef479d?q=80&w=3011&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1576566588028-4147f3842f27?q=80&w=2928&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1616142578289-1a94b19d2241?q=80&w=3087&auto=format&fit=crop'
+  ],
+  'Intimates': [
+    'https://images.unsplash.com/photo-1615874959474-d609969a20ed?q=80&w=2970&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1582142407894-ec85a1440cf8?q=80&w=3087&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1605100804763-247f67b3557e?q=80&w=2970&auto=format&fit=crop'
+  ],
+  'Jackets': [
+    'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?q=80&w=3036&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1551232864-3f0890e580d9?q=80&w=3087&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1623113562225-08abec08da21?q=80&w=3087&auto=format&fit=crop'
+  ],
+  'Jeans': [
+    'https://images.unsplash.com/photo-1541099649105-f69ad21f3246?q=80&w=3087&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1584370848010-d7fe6bc767ec?q=80&w=2942&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1582418702059-97ebafb35d09?q=80&w=3087&auto=format&fit=crop'
+  ],
+  'Knits': [
+    'https://images.unsplash.com/photo-1624623278212-588ccfd478e0?q=80&w=3087&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1608648322835-0851ccc52cc3?q=80&w=3087&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1584030373081-f37b7bb4fa8e?q=80&w=3087&auto=format&fit=crop'
+  ],
+  'Layering': [
+    'https://images.unsplash.com/photo-1516762689617-e1cffcef479d?q=80&w=3011&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1593311640936-dada12015c96?q=80&w=2865&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1527628173875-3c7bfd28ad78?q=80&w=3087&auto=format&fit=crop'
+  ],
+  'Legwear': [
+    'https://images.unsplash.com/photo-1515664069236-68a74c369d97?q=80&w=3087&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1586106417424-5749d2552864?q=80&w=3087&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1578858671951-bfe870ddb78d?q=80&w=3087&auto=format&fit=crop'
+  ],
+  'Lounge': [
+    'https://images.unsplash.com/photo-1595273670150-bd0c3c392e46?q=80&w=3087&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1613461920867-9ea115fee900?q=80&w=3087&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1618355776464-8666794d3f5c?q=80&w=3087&auto=format&fit=crop'
+  ],
+  'Outerwear': [
+    'https://images.unsplash.com/photo-1601593532815-932fa0e2cb67?q=80&w=3087&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1548883354-94bcfe321cbb?q=80&w=3074&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1566958769312-82cef41d19ef?q=80&w=3099&auto=format&fit=crop'
+  ],
+  'Pants': [
+    'https://images.unsplash.com/photo-1592878849122-5c6ed5a89776?q=80&w=3087&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1574087093605-23f997e876db?q=80&w=3087&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1473966968600-fa801b869a1a?q=80&w=3087&auto=format&fit=crop'
+  ],
+  'Shorts': [
+    'https://images.unsplash.com/photo-1617886322168-72b886573d73?q=80&w=3087&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1591195853866-860b28d28055?q=80&w=3087&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1586363104862-3a5e2ab60d99?q=80&w=3087&auto=format&fit=crop'
+  ],
+  'Skirts': [
+    'https://images.unsplash.com/photo-1583496661160-fb5886a0aaaa?q=80&w=3087&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1605763240000-7e93b172d754?q=80&w=2942&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1577900232427-18219b9166a0?q=80&w=3087&auto=format&fit=crop'
+  ],
+  'Sleep': [
+    'https://images.unsplash.com/photo-1616156498188-01f8afe5c56a?q=80&w=3087&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1612964727616-e6b351c93561?q=80&w=3087&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1570292185515-43abbcaf32fa?q=80&w=3087&auto=format&fit=crop'
+  ],
+  'Sweaters': [
+    'https://images.unsplash.com/photo-1608648322835-0851ccc52cc3?q=80&w=3087&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1605763339941-e620120366ab?q=80&w=3087&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1611911813383-67769b37a149?q=80&w=3087&auto=format&fit=crop'
+  ],
+  'Swim': [
+    'https://images.unsplash.com/photo-1570976447640-ac859a223c13?q=80&w=3087&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1560956841-2eb9b8d6b948?q=80&w=3087&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1605374868293-90e83334a021?q=80&w=3087&auto=format&fit=crop'
+  ]
+};
+
+// Additional subcategory-specific images
+const subcategoryImages = {
+  'Silk': [
+    'https://images.unsplash.com/photo-1622260614153-03223fb73af9?q=80&w=3270&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1582220107109-40be22b9939c?q=80&w=2187&auto=format&fit=crop'
+  ],
+  'Lace': [
+    'https://images.unsplash.com/photo-1616350326303-27e8bad156d7?q=80&w=2970&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1602241628512-459cdd3234fe?q=80&w=3056&auto=format&fit=crop'
+  ],
+  'Satin': [
+    'https://images.unsplash.com/photo-1582142407894-ec85a1440cf8?q=80&w=3087&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1605100804763-247f67b3557e?q=80&w=2970&auto=format&fit=crop'
+  ],
+  'Casual': [
+    'https://images.unsplash.com/photo-1614676471928-2ed0ad1061a4?q=80&w=2187&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1552160793-cbae2e9441c3?q=80&w=2187&auto=format&fit=crop'
+  ],
+  'Sleeveless': [
+    'https://images.unsplash.com/photo-1559583109-3e7968136c99?q=80&w=3087&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1618355776464-8666794d3f5c?q=80&w=3087&auto=format&fit=crop'
+  ],
+  'Joggers': [
+    'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?q=80&w=3087&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1560243563-062bfc001d68?q=80&w=2970&auto=format&fit=crop'
+  ],
+  'Denim': [
+    'https://images.unsplash.com/photo-1623113562225-08abec08da21?q=80&w=3087&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1551232864-3f0890e580d9?q=80&w=3087&auto=format&fit=crop'
+  ],
+  'Skinny': [
+    'https://images.unsplash.com/photo-1541099649105-f69ad21f3246?q=80&w=3087&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1584370848010-d7fe6bc767ec?q=80&w=2942&auto=format&fit=crop'
+  ],
+  'High-Rise': [
+    'https://images.unsplash.com/photo-1582418702059-97ebafb35d09?q=80&w=3087&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1541099649105-f69ad21f3246?q=80&w=3087&auto=format&fit=crop'
+  ],
+  'Sweaters': [
+    'https://images.unsplash.com/photo-1608648322835-0851ccc52cc3?q=80&w=3087&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1584030373081-f37b7bb4fa8e?q=80&w=3087&auto=format&fit=crop'
+  ],
+  'Cardigans': [
+    'https://images.unsplash.com/photo-1516762689617-e1cffcef479d?q=80&w=3011&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1593311640936-dada12015c96?q=80&w=2865&auto=format&fit=crop'
+  ],
+  'Vests': [
+    'https://images.unsplash.com/photo-1601593532815-932fa0e2cb67?q=80&w=3087&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1548883354-94bcfe321cbb?q=80&w=3074&auto=format&fit=crop'
+  ],
+  'Dress': [
+    'https://images.unsplash.com/photo-1574087093605-23f997e876db?q=80&w=3087&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1473966968600-fa801b869a1a?q=80&w=3087&auto=format&fit=crop'
+  ],
+  'Panties': [
+    'https://images.unsplash.com/photo-1605100804763-247f67b3557e?q=80&w=2970&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1615874959474-d609969a20ed?q=80&w=2970&auto=format&fit=crop'
+  ]
+};
+
 // Generate 40 products across different categories
 export const generateProducts = (): Product[] => {
   const products: Product[] = [];
@@ -219,33 +378,142 @@ export const generateProducts = (): Product[] => {
     "fair trade", "vegan", "luxury", "designer", "classic", "trending"
   ];
 
+  // Function to get product images based on category and subcategory
+  const getProductImages = (category: string, subcategory: string): string[] => {
+    const images: string[] = [];
+    
+    // Try to get subcategory-specific images first
+    if (subcategoryImages[subcategory] && subcategoryImages[subcategory].length > 0) {
+      images.push(...subcategoryImages[subcategory]);
+    }
+    
+    // Then try category images
+    if (images.length < 3 && categoryImages[category] && categoryImages[category].length > 0) {
+      const remainingNeeded = Math.min(3 - images.length, categoryImages[category].length);
+      images.push(...categoryImages[category].slice(0, remainingNeeded));
+    }
+    
+    // If still not enough, use backup images
+    if (images.length === 0) {
+      const backupImages = [
+        'https://images.unsplash.com/photo-1525507119028-ed4c629a60a3?q=80&w=3087&auto=format&fit=crop',
+        'https://images.unsplash.com/photo-1434389677669-e08b4cac3105?q=80&w=3005&auto=format&fit=crop',
+        'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=3870&auto=format&fit=crop'
+      ];
+      images.push(...backupImages);
+    }
+    
+    return images;
+  };
+
+  // Ensure at least one product for each subcategory
+  const subcategories = new Set<string>();
+  categories.forEach(category => {
+    category.subcategories.forEach(subcategory => {
+      subcategories.add(`${category.name}-${subcategory}`);
+    });
+  });
+
   // Generate a set number of products for each category
   categories.forEach((category) => {
-    const productsPerCategory = Math.ceil(40 / categories.length);
+    // Ensure at least one product per subcategory
+    category.subcategories.forEach((subcategory) => {
+      const productNumber = products.length + 1;
+      
+      // Generate product details
+      const isFeatured = true; // Make these featured to ensure visibility
+      const rating = 4 + Math.random(); // Higher rating for these key products
+      const price = 29.99 + Math.floor(Math.random() * 100);
+      const hasDiscount = Math.random() > 0.7;
+      const oldPrice = hasDiscount ? price + 10 + Math.floor(Math.random() * 30) : undefined;
+      
+      // Get images for this product
+      const images = getProductImages(category.name, subcategory);
+      
+      // Generate 2-3 random reviews
+      const reviewCount = 2 + Math.floor(Math.random() * 2);
+      const reviews: Review[] = [];
+      
+      for (let k = 0; k < reviewCount; k++) {
+        const template = reviewTemplates[Math.floor(Math.random() * reviewTemplates.length)];
+        reviews.push({
+          id: `review-${products.length}-${k}`,
+          ...template
+        });
+      }
+      
+      // Generate 2-4 random colors
+      const colorOptions = ["Black", "White", "Navy", "Gray", "Beige", "Blue", "Red", "Green", "Purple", "Pink"];
+      const colorCount = 2 + Math.floor(Math.random() * 3);
+      const colors: string[] = [];
+      
+      for (let l = 0; l < colorCount; l++) {
+        const randomColor = colorOptions[Math.floor(Math.random() * colorOptions.length)];
+        if (!colors.includes(randomColor)) {
+          colors.push(randomColor);
+        }
+      }
+      
+      // Generate sizes
+      const sizeOptions = ["XS", "S", "M", "L", "XL", "XXL"];
+      const sizeCount = 3 + Math.floor(Math.random() * 3); // 3-5 sizes
+      const sizes: string[] = [];
+      
+      for (let m = 0; m < sizeCount; m++) {
+        sizes.push(sizeOptions[m]);
+      }
+      
+      // Generate 2-4 random tags, always include "new arrival" for subcategory products
+      const productTags: string[] = ["new arrival"];
+      const tagCount = 1 + Math.floor(Math.random() * 3);
+      
+      for (let n = 0; n < tagCount; n++) {
+        const randomTag = tags[Math.floor(Math.random() * tags.length)];
+        if (!productTags.includes(randomTag)) {
+          productTags.push(randomTag);
+        }
+      }
+      
+      // Create the product with a more specific name
+      products.push({
+        id: `product-${productNumber}`,
+        name: `${category.name} ${subcategory} ${productNumber}`,
+        description: descriptions[Math.floor(Math.random() * descriptions.length)],
+        price: parseFloat(price.toFixed(2)),
+        oldPrice: oldPrice ? parseFloat(oldPrice.toFixed(2)) : undefined,
+        images,
+        category: category.name,
+        subcategory,
+        featured: isFeatured,
+        rating: parseFloat(rating.toFixed(1)),
+        reviews,
+        colors,
+        sizes,
+        tags: productTags
+      });
+      
+      // Remove this subcategory from the set
+      subcategories.delete(`${category.name}-${subcategory}`);
+    });
+    
+    // Fill in the remaining products up to the quota
+    const productsPerCategory = Math.ceil(40 / categories.length) - category.subcategories.length;
     
     for (let i = 0; i < productsPerCategory; i++) {
-      if (products.length >= 40) break;
+      if (products.length >= 40 + categories.length * category.subcategories.length) break;
       
       const subcategory = category.subcategories[Math.floor(Math.random() * category.subcategories.length)];
       const productNumber = products.length + 1;
       
       // Generate random product details
-      const isFeatured = Math.random() > 0.7;
-      const rating = 3 + Math.random() * 2; // Random rating between 3 and 5
+      const isFeatured = Math.random() > 0.5; // 50% chance to be featured
+      const rating = 3 + Math.random() * 2;
       const price = 29.99 + Math.floor(Math.random() * 100);
       const hasDiscount = Math.random() > 0.7;
       const oldPrice = hasDiscount ? price + 10 + Math.floor(Math.random() * 30) : undefined;
       
-      // Generate 1-3 random product images from Unsplash
-      const imageCount = 1 + Math.floor(Math.random() * 2);
-      const imageWidth = 600;
-      const imageHeight = 800;
-      const images = [];
-      
-      for (let j = 0; j < imageCount; j++) {
-        const randomId = Math.floor(Math.random() * 1000);
-        images.push(`https://source.unsplash.com/random/${imageWidth}x${imageHeight}?${category.name.toLowerCase()}&sig=${randomId}`);
-      }
+      // Get images for this product
+      const images = getProductImages(category.name, subcategory);
       
       // Generate 1-4 random reviews
       const reviewCount = 1 + Math.floor(Math.random() * 3);
@@ -291,10 +559,13 @@ export const generateProducts = (): Product[] => {
         }
       }
       
-      // Create the product
+      // Create the product with a more descriptive name
+      const productTypes = ["Classic", "Modern", "Deluxe", "Premium", "Signature", "Essential"];
+      const productType = productTypes[Math.floor(Math.random() * productTypes.length)];
+      
       products.push({
         id: `product-${productNumber}`,
-        name: `${subcategory} ${category.name.slice(0, -1)}`,
+        name: `${productType} ${subcategory} ${category.name}`,
         description: descriptions[Math.floor(Math.random() * descriptions.length)],
         price: parseFloat(price.toFixed(2)),
         oldPrice: oldPrice ? parseFloat(oldPrice.toFixed(2)) : undefined,
@@ -344,3 +615,4 @@ export const userCredentials = {
   email: 'user@example.com',
   password: 'password123'
 };
+
