@@ -74,7 +74,7 @@ const Header = () => {
           </button>
           
           <Link 
-            to="/login" 
+            to="/account" 
             className="p-2 rounded-full hover:bg-black/5 transition"
             aria-label="Account"
           >
