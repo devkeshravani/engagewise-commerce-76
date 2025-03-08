@@ -38,7 +38,7 @@ const CategoryNav: React.FC<CategoryNavProps> = ({ categories }) => {
           
           {activeCategory === category.id && (
             <div 
-              className="absolute left-0 min-w-[200px] p-4 bg-white shadow-lg rounded-lg mt-2 z-10 animate-fade-in"
+              className="absolute left-0 min-w-[250px] p-4 bg-white shadow-lg rounded-lg mt-2 z-10 animate-fade-in"
               onMouseEnter={() => handleMouseEnter(category.id)}
               onMouseLeave={handleMouseLeave}
             >
