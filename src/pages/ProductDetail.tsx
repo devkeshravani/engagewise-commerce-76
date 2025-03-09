@@ -7,6 +7,14 @@ import Footer from '@/components/layout/Footer';
 import Chatbot from '@/components/ui/Chatbot';
 import { products } from '@/lib/data';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import ReviewForm from '@/components/product/ReviewForm';
+import { 
+  fetchProductReviews,
+  addToCart,
+  addToWishlist,
+  isInWishlist
+} from '@/lib/services';
+import { useCart } from '@/lib/CartContext';
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -15,6 +23,24 @@ const ProductDetail = () => {
   const [selectedSize, setSelectedSize] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [mainImage, setMainImage] = useState('');
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [inWishlist, setInWishlist] = useState(false);
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const { updateCounts } = useCart();
+  
+  const fetchReviews = async () => {
+    if (id) {
+      const reviewData = await fetchProductReviews(id);
+      setReviews(reviewData);
+    }
+  };
+  
+  const checkWishlistStatus = async () => {
+    if (id) {
+      const wishlistStatus = await isInWishlist(id);
+      setInWishlist(wishlistStatus);
+    }
+  };
   
   useEffect(() => {
     // Find the product based on the ID parameter
@@ -26,9 +52,57 @@ const ProductDetail = () => {
       setSelectedSize(foundProduct.sizes[0]);
     }
     
+    // Fetch reviews from the database
+    fetchReviews();
+    
+    // Check if the product is in the wishlist
+    checkWishlistStatus();
+    
     // Scroll to top on page load
     window.scrollTo(0, 0);
   }, [id]);
+
+  const handleColorSelect = (color: string) => {
+    setSelectedColor(color);
+    
+    // Update the main image based on color selection
+    // For demo purposes, we're using color index to select a different image if available
+    const colorIndex = product?.colors.indexOf(color) || 0;
+    if (product?.images[colorIndex]) {
+      setMainImage(product.images[colorIndex]);
+    }
+  };
+  
+  const handleAddToCart = async () => {
+    if (product && selectedColor && selectedSize) {
+      const success = await addToCart(
+        product.id,
+        quantity,
+        selectedColor,
+        selectedSize
+      );
+      
+      if (success) {
+        updateCounts();
+      }
+    }
+  };
+  
+  const handleAddToWishlist = async () => {
+    if (product) {
+      const success = await addToWishlist(product.id);
+      if (success) {
+        setInWishlist(true);
+        updateCounts();
+      }
+    }
+  };
+  
+  const handleReviewSubmitSuccess = () => {
+    // Reload reviews after a successful submission
+    fetchReviews();
+    setShowReviewForm(false);
+  };
 
   if (!product) {
     return (
@@ -79,7 +153,9 @@ const ProductDetail = () => {
     return (
       <div className="flex">
         {stars}
-        <span className="ml-2 text-sm text-gray-600">({product.reviews.length} reviews)</span>
+        <span className="ml-2 text-sm text-gray-600">
+          ({reviews.length ? reviews.length : product.reviews.length} reviews)
+        </span>
       </div>
     );
   };
@@ -174,7 +250,7 @@ const ProductDetail = () => {
                   {product.colors.map((color) => (
                     <button
                       key={color}
-                      onClick={() => setSelectedColor(color)}
+                      onClick={() => handleColorSelect(color)}
                       className={`px-4 py-2 rounded-md border transition ${
                         selectedColor === color 
                           ? 'border-primary bg-primary/5 text-primary' 
@@ -233,13 +309,24 @@ const ProductDetail = () => {
               
               {/* Buttons */}
               <div className="flex flex-col sm:flex-row gap-4 mt-8">
-                <button className="flex-1 px-6 py-3 bg-primary text-white rounded-md hover:bg-primary/90 transition flex items-center justify-center">
+                <button 
+                  className="flex-1 px-6 py-3 bg-primary text-white rounded-md hover:bg-primary/90 transition flex items-center justify-center"
+                  onClick={handleAddToCart}
+                >
                   <ShoppingBag className="w-5 h-5 mr-2" />
                   Add to Cart
                 </button>
-                <button className="flex-1 px-6 py-3 border border-gray-300 rounded-md hover:bg-gray-50 transition flex items-center justify-center">
-                  <Heart className="w-5 h-5 mr-2" />
-                  Add to Wishlist
+                <button 
+                  className={`flex-1 px-6 py-3 border rounded-md transition flex items-center justify-center ${
+                    inWishlist 
+                      ? 'bg-pink-50 border-pink-200 text-pink-500' 
+                      : 'border-gray-300 hover:bg-gray-50'
+                  }`}
+                  onClick={handleAddToWishlist}
+                  disabled={inWishlist}
+                >
+                  <Heart className={`w-5 h-5 mr-2 ${inWishlist ? 'fill-pink-500 text-pink-500' : ''}`} />
+                  {inWishlist ? 'In Wishlist' : 'Add to Wishlist'}
                 </button>
               </div>
               
@@ -266,7 +353,7 @@ const ProductDetail = () => {
           <Tabs defaultValue="reviews">
             <TabsList className="w-full max-w-md mx-auto">
               <TabsTrigger value="description" className="flex-1">Description</TabsTrigger>
-              <TabsTrigger value="reviews" className="flex-1">Reviews ({product.reviews.length})</TabsTrigger>
+              <TabsTrigger value="reviews" className="flex-1">Reviews ({reviews.length || product.reviews.length})</TabsTrigger>
               <TabsTrigger value="shipping" className="flex-1">Shipping & Returns</TabsTrigger>
             </TabsList>
             
@@ -291,13 +378,47 @@ const ProductDetail = () => {
               <div className="max-w-3xl mx-auto">
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-xl font-medium">Customer Reviews</h3>
-                  <button className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition">
-                    Write a Review
+                  <button 
+                    className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition"
+                    onClick={() => setShowReviewForm(!showReviewForm)}
+                  >
+                    {showReviewForm ? 'Cancel' : 'Write a Review'}
                   </button>
                 </div>
                 
+                {showReviewForm && (
+                  <div className="mb-8">
+                    <ReviewForm 
+                      productId={product.id} 
+                      onSubmitSuccess={handleReviewSubmitSuccess} 
+                    />
+                  </div>
+                )}
+                
                 <div className="space-y-6">
-                  {product.reviews.map((review) => (
+                  {/* Show database reviews first */}
+                  {reviews.map((review) => (
+                    <div key={review.id} className="bg-white p-6 rounded-lg">
+                      <div className="flex justify-between mb-2">
+                        <div className="flex space-x-1">
+                          {[...Array(5)].map((_, i) => (
+                            <Star 
+                              key={i}
+                              className={`w-4 h-4 ${i < review.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'}`}
+                            />
+                          ))}
+                        </div>
+                        <span className="text-sm text-gray-500">
+                          {new Date(review.created_at).toLocaleDateString()}
+                        </span>
+                      </div>
+                      <h4 className="font-medium">{review.user_name}</h4>
+                      <p className="mt-2 text-gray-700">{review.comment}</p>
+                    </div>
+                  ))}
+                  
+                  {/* Fall back to sample reviews if no database reviews */}
+                  {reviews.length === 0 && product.reviews.map((review) => (
                     <div key={review.id} className="bg-white p-6 rounded-lg">
                       <div className="flex justify-between mb-2">
                         <div className="flex space-x-1">

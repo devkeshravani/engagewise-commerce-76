@@ -1,16 +1,18 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Search, ShoppingBag, User, Menu, X } from 'lucide-react';
+import { Search, ShoppingBag, User, Menu, X, Heart } from 'lucide-react';
 import SearchBar from '../ui/SearchBar';
 import CategoryNav from '../ui/CategoryNav';
 import { categories } from '@/lib/data';
+import { useCart } from '@/lib/CartContext';
 
 const Header = () => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const location = useLocation();
+  const { cartCount, wishlistCount } = useCart();
   
   // Track scroll for header styling
   useEffect(() => {
@@ -74,6 +76,19 @@ const Header = () => {
           </button>
           
           <Link 
+            to="/wishlist" 
+            className="p-2 rounded-full hover:bg-black/5 transition relative"
+            aria-label="Wishlist"
+          >
+            <Heart className="w-5 h-5" />
+            {wishlistCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-primary text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                {wishlistCount}
+              </span>
+            )}
+          </Link>
+          
+          <Link 
             to="/account" 
             className="p-2 rounded-full hover:bg-black/5 transition"
             aria-label="Account"
@@ -87,9 +102,11 @@ const Header = () => {
             aria-label="Cart"
           >
             <ShoppingBag className="w-5 h-5" />
-            <span className="absolute -top-1 -right-1 bg-primary text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-              0
-            </span>
+            {cartCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-primary text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                {cartCount}
+              </span>
+            )}
           </Link>
           
           <button 
