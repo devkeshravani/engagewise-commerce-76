@@ -9,6 +9,12 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useCart } from '@/lib/CartContext';
 import { Product, products } from '@/lib/data';
 import { toast } from '@/hooks/use-toast';
+import {
+  addToCart,
+  addToWishlist,
+  isInWishlist,
+  fetchWishlistItems,
+} from '@/lib/services';
 
 // Define categories and actions for the chatbot
 interface CategoryAction {
@@ -35,6 +41,7 @@ const Chatbot = () => {
   const [isProactiveMode, setIsProactiveMode] = useState(false);
   const [showCategories, setShowCategories] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [currentProductDetails, setCurrentProductDetails] = useState<Product | null>(null);
 
   // Refs
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -45,7 +52,7 @@ const Chatbot = () => {
   // Hooks
   const location = useLocation();
   const navigate = useNavigate();
-  const { cartCount, updateCounts } = useCart();
+  const { cartCount, wishlistCount, updateCounts } = useCart();
 
   // Categories with their actions
   const categories: Category[] = [
@@ -64,7 +71,7 @@ const Chatbot = () => {
       name: 'Products',
       icon: <ShoppingBag className="w-5 h-5" />,
       actions: [
-        { label: 'Add to cart', icon: <ShoppingBag className="w-4 h-4" />, action: 'Add this item to my cart' },
+        { label: 'Add to cart', icon: <ShoppingBag className="w-4 h-4" />, action: 'Add this product to my cart' },
         { label: 'Add to wishlist', icon: <Heart className="w-4 h-4" />, action: 'Add this to my wishlist' },
         { label: 'Show reviews', icon: <Star className="w-4 h-4" />, action: 'Show me customer reviews' },
         { label: 'Show similar products', icon: <Search className="w-4 h-4" />, action: 'Show me similar products' },
@@ -86,10 +93,10 @@ const Chatbot = () => {
       name: 'Support',
       icon: <MessagesSquare className="w-5 h-5" />,
       actions: [
-        { label: 'Payment help', icon: <CreditCard className="w-4 h-4" />, action: 'Help with payment' },
+        { label: 'Payment help', icon: <CreditCard className="w-4 h-4" />, action: 'Payment help' },
         { label: 'FAQs', icon: <Info className="w-4 h-4" />, action: 'Show me FAQs' },
-        { label: 'Returns policy', icon: <RefreshCw className="w-4 h-4" />, action: 'What is your return policy?' },
-        { label: 'Shipping info', icon: <Package className="w-4 h-4" />, action: 'Tell me about shipping' },
+        { label: 'Returns policy', icon: <RefreshCw className="w-4 h-4" />, action: 'Returns policy' },
+        { label: 'Shipping info', icon: <Package className="w-4 h-4" />, action: 'Shipping info' },
         { label: 'Contact us', icon: <MessagesSquare className="w-4 h-4" />, action: 'Contact customer service' }
       ]
     },
@@ -98,10 +105,10 @@ const Chatbot = () => {
       icon: <User className="w-5 h-5" />,
       actions: [
         { label: 'My recommendations', icon: <ThumbsUp className="w-4 h-4" />, action: 'Show me recommendations' },
-        { label: 'Stock alerts', icon: <Bell className="w-4 h-4" />, action: 'Notify me when back in stock' },
-        { label: 'My wish list', icon: <Heart className="w-4 h-4" />, action: 'Show my saved items' },
-        { label: 'Order history', icon: <Package className="w-4 h-4" />, action: 'Show my order history' },
-        { label: 'Special offers', icon: <Tag className="w-4 h-4" />, action: 'Show me special offers' }
+        { label: 'Stock alerts', icon: <Bell className="w-4 h-4" />, action: 'Stock alerts' },
+        { label: 'My wish list', icon: <Heart className="w-4 h-4" />, action: 'Show my wish list' },
+        { label: 'Order history', icon: <Package className="w-4 h-4" />, action: 'Order history' },
+        { label: 'Special offers', icon: <Tag className="w-4 h-4" />, action: 'Special offers' }
       ]
     }
   ];
@@ -121,6 +128,19 @@ const Chatbot = () => {
       setShowCategories(true);
     }
   }, [isOpen, messages.length]);
+
+  // Get current product info if on a product page
+  useEffect(() => {
+    if (location.pathname.includes('/product/')) {
+      const productId = location.pathname.split('/product/')[1];
+      const product = products.find(p => p.id === productId);
+      if (product) {
+        setCurrentProductDetails(product);
+      }
+    } else {
+      setCurrentProductDetails(null);
+    }
+  }, [location.pathname]);
 
   // Track user activity on the site
   useEffect(() => {
@@ -321,7 +341,7 @@ const Chatbot = () => {
       navigate('/');
       sendBotResponse("Redirecting you to the home page!");
     }
-    else if (lowercaseInput.includes('my wishlist') || lowercaseInput.includes('saved items')) {
+    else if (lowercaseInput.includes('my wishlist') || lowercaseInput.includes('saved items') || lowercaseInput.includes('wish list')) {
       navigate('/wishlist');
       sendBotResponse("Here's your wishlist!");
     }
@@ -336,16 +356,12 @@ const Chatbot = () => {
     
     // Product Interaction - for current product page
     else if (location.pathname.includes('/product/') && 
-            (lowercaseInput.includes('add to cart') || lowercaseInput.includes('add this item to my cart'))) {
-      // Extract the product ID from the URL
-      const productId = location.pathname.split('/product/')[1];
-      handleAddToCart(productId);
+            (lowercaseInput.includes('add to cart') || lowercaseInput.includes('add this product to my cart') || lowercaseInput.includes('add this to my cart'))) {
+      handleCurrentProductToCart();
     }
     else if (location.pathname.includes('/product/') && 
             (lowercaseInput.includes('add to wishlist') || lowercaseInput.includes('add this to my wishlist'))) {
-      // Extract the product ID from the URL
-      const productId = location.pathname.split('/product/')[1];
-      handleAddToWishlist(productId);
+      handleCurrentProductToWishlist();
     }
     else if (location.pathname.includes('/product/') && 
             (lowercaseInput.includes('customer reviews') || lowercaseInput.includes('show reviews'))) {
@@ -382,6 +398,73 @@ const Chatbot = () => {
       }
     }
     
+    // Support Responses - Give direct answers instead of asking follow-up questions
+    else if (lowercaseInput.includes('payment help')) {
+      sendBotResponse(`To complete a payment, follow these steps:
+1. Go to your cart and click "Proceed to Checkout"
+2. Enter your shipping details and click "Continue"
+3. Choose your preferred payment method (Credit Card, PayPal, or Apple Pay)
+4. Enter your payment details securely
+5. Review your order and click "Place Order"
+
+If you face any issues with payment, please contact our support team at support@example.com or call 1-800-123-4567.`);
+    }
+    else if (lowercaseInput.includes('returns policy') || lowercaseInput.includes('return policy')) {
+      sendBotResponse(`Our Returns Policy:
+• You can return any item within 30 days of purchase
+• Items must be unworn with original tags attached
+• Original receipt or proof of purchase required
+• Free returns for orders over $50
+• Refunds will be processed to the original payment method within 5-7 business days
+
+To start a return, visit your order history page and select the item you wish to return, or contact our customer service team.`);
+    }
+    else if (lowercaseInput.includes('shipping info')) {
+      sendBotResponse(`Shipping Information:
+• Free standard shipping on all orders over $50
+• Standard shipping (3-5 business days): $4.99
+• Express shipping (1-2 business days): $9.99
+• Overnight shipping (next business day): $19.99
+• International shipping available to select countries
+
+Orders placed before 2 PM EST will ship the same day. All orders include tracking information sent to your email.`);
+    }
+    else if (lowercaseInput.includes('contact') && lowercaseInput.includes('service')) {
+      sendBotResponse(`Contact Customer Service:
+• Phone: 1-800-123-4567 (Mon-Fri, 9 AM - 6 PM EST)
+• Email: support@example.com
+• Live Chat: Available 24/7 on our website
+• Social Media: @EngageWise on Twitter and Instagram
+
+Our support team typically responds within 24 hours. For urgent matters, we recommend using phone or live chat for the fastest assistance.`);
+    }
+    
+    // Personalized Sections with Direct Answers
+    else if (lowercaseInput.includes('recommendations')) {
+      // Show personalized recommendations
+      const recommendedProducts = products.slice(0, 4); // Get 4 random products as recommendations
+      let recommendationsMessage = "Based on your browsing history, here are some recommendations:\n\n";
+      
+      recommendedProducts.forEach((product, index) => {
+        recommendationsMessage += `${index + 1}. ${product.name} - $${product.price.toFixed(2)}\n`;
+      });
+      
+      recommendationsMessage += "\nWould you like to view any of these products?";
+      sendBotResponse(recommendationsMessage);
+    }
+    else if (lowercaseInput.includes('stock alerts')) {
+      // Show stock alert information
+      sendBotResponse("You currently have stock alerts set for the following items:\n\n1. Leather Crossbody Bag - Black\n2. Premium Cotton T-Shirt - Medium, Navy\n\nWe'll notify you via email when these items are back in stock. Would you like to set up an alert for any other items?");
+    }
+    else if (lowercaseInput.includes('order history')) {
+      // Show order history
+      sendBotResponse("Here's your recent order history:\n\n• Order #12345 - Placed on June 15, 2023 - Delivered\n• Order #12346 - Placed on July 2, 2023 - In Transit\n• Order #12347 - Placed on July 10, 2023 - Processing\n\nClick on any order number to view details or track your shipment.");
+    }
+    else if (lowercaseInput.includes('special offers')) {
+      // Show special offers
+      sendBotResponse("Current Special Offers:\n\n• Summer Sale: 20% off all summer apparel with code SUMMER20\n• Buy One Get One 50% Off on all accessories\n• Free shipping on orders over $50\n• 10% off your first order when you sign up for our newsletter\n\nThese offers are valid until August 31, 2023.");
+    }
+    
     // General shopping assistance
     else if (lowercaseInput.includes('find a gift')) {
       sendBotResponse("I'd be happy to help you find a gift! Could you tell me who it's for and what's your budget?");
@@ -399,19 +482,19 @@ const Chatbot = () => {
       sendBotResponse("To find the nearest store, I need your location. Could you share your city or zip code?");
     }
     
-    // Fallback for unrecognized commands
+    // Fallback for unrecognized commands - more helpful than before
     else {
-      // Generate response based on context
-      const botResponses = [
-        "I understand you want to " + userInput + ". Let me help you with that.",
-        "I'll assist you with " + userInput + ". Could you provide more details?",
-        "I'm processing your request to " + userInput + ". Is there anything specific you're looking for?",
-        "I'll help you " + userInput + ". What other information can I provide?",
-        "I'm working on your request to " + userInput + ". Is there anything else you'd like to know?"
-      ];
-      
-      const randomResponse = botResponses[Math.floor(Math.random() * botResponses.length)];
-      sendBotResponse(randomResponse);
+      // Generate more helpful responses based on context
+      if (location.pathname.includes('/product/')) {
+        sendBotResponse(`I see you're looking at ${currentProductDetails?.name || 'this product'}. I can help you add it to your cart, check reviews, find similar products, or answer any questions about it. What would you like to know?`);
+      } else if (location.pathname.includes('/cart')) {
+        sendBotResponse("I see you're viewing your cart. I can help you apply discounts, estimate shipping, or proceed to checkout. What would you like to do?");
+      } else if (location.pathname.includes('/wishlist')) {
+        sendBotResponse("I see you're viewing your wishlist. I can help you move items to your cart, check if any items are on sale, or help you find similar products. How can I assist you?");
+      } else {
+        // Generic but more helpful response
+        sendBotResponse("I'm not sure I understand what you're looking for. I can help you find products, navigate the site, track orders, or provide information about our policies. Could you please clarify what you need?");
+      }
     }
     
     // Generate new suggested questions after processing
@@ -432,34 +515,29 @@ const Chatbot = () => {
     }, 600);
   };
 
-  // Function to handle adding to cart from the chatbot
-  const handleAddToCart = async (productId: string) => {
+  // Function to handle adding the current product to cart
+  const handleCurrentProductToCart = async () => {
+    if (!currentProductDetails) {
+      sendBotResponse("I don't see any product details. Are you on a product page?");
+      return;
+    }
+
     try {
-      // Import functions from services
-      const { addToCart } = await import('@/lib/services');
+      // Add to cart using the first color and size options
+      const success = await addToCart(
+        currentProductDetails.id,
+        1,
+        currentProductDetails.colors[0],
+        currentProductDetails.sizes[0]
+      );
       
-      // Find the product
-      const product = products.find(p => p.id === productId);
-      
-      if (product) {
-        // Add to cart using the first color and size options
-        const success = await addToCart(
-          product.id,
-          1,
-          product.colors[0],
-          product.sizes[0]
-        );
+      if (success) {
+        // Update cart count
+        updateCounts();
         
-        if (success) {
-          // Update cart count
-          updateCounts();
-          
-          sendBotResponse(`I've added ${product.name} to your cart!`);
-        } else {
-          sendBotResponse("I couldn't add this item to your cart. Please try again later.");
-        }
+        sendBotResponse(`I've added ${currentProductDetails.name} to your cart! Would you like to continue shopping or view your cart?`);
       } else {
-        sendBotResponse("I couldn't find this product. Please try again.");
+        sendBotResponse("I couldn't add this item to your cart. Please try again later.");
       }
     } catch (error) {
       console.error("Error adding to cart:", error);
@@ -467,30 +545,53 @@ const Chatbot = () => {
     }
   };
 
-  // Function to handle adding to wishlist from the chatbot
-  const handleAddToWishlist = async (productId: string) => {
+  // Function to handle adding the current product to wishlist
+  const handleCurrentProductToWishlist = async () => {
+    if (!currentProductDetails) {
+      sendBotResponse("I don't see any product details. Are you on a product page?");
+      return;
+    }
+
     try {
-      // Import functions from services
-      const { addToWishlist } = await import('@/lib/services');
+      // Check if already in wishlist
+      const alreadyInWishlist = await isInWishlist(currentProductDetails.id);
+      
+      if (alreadyInWishlist) {
+        sendBotResponse(`${currentProductDetails.name} is already in your wishlist! Would you like to view your wishlist or add it to your cart instead?`);
+        return;
+      }
       
       // Add to wishlist
-      const success = await addToWishlist(productId);
+      const success = await addToWishlist(currentProductDetails.id);
       
       if (success) {
         // Update wishlist count
         updateCounts();
         
-        // Find the product name
-        const product = products.find(p => p.id === productId);
-        const productName = product ? product.name : "This item";
-        
-        sendBotResponse(`I've added ${productName} to your wishlist!`);
+        sendBotResponse(`I've added ${currentProductDetails.name} to your wishlist! Would you like to continue shopping or view your wishlist?`);
       } else {
         sendBotResponse("I couldn't add this item to your wishlist. Please try again later.");
       }
     } catch (error) {
       console.error("Error adding to wishlist:", error);
       sendBotResponse("There was a problem adding this item to your wishlist.");
+    }
+  };
+
+  // Handle wishlist-specific actions when on the wishlist page
+  const handleWishlistActions = async (action: string) => {
+    if (location.pathname === '/wishlist') {
+      if (action === 'move all to cart') {
+        const wishlistItems = await fetchWishlistItems();
+        if (wishlistItems.length === 0) {
+          sendBotResponse("Your wishlist is empty. Let's find some products to add!");
+          return;
+        }
+        
+        // Add all items to cart
+        // This is just a simulation - in a real app, you'd add them all to cart
+        sendBotResponse(`I've moved ${wishlistItems.length} items from your wishlist to your cart. Would you like to view your cart now?`);
+      }
     }
   };
 
@@ -603,7 +704,7 @@ const Chatbot = () => {
                       : 'bg-gray-100 text-gray-800 rounded-tl-none'
                   }`}
                 >
-                  <p className="text-sm">{message.text}</p>
+                  <p className="text-sm whitespace-pre-line">{message.text}</p>
                   <span className="block text-[10px] mt-1 opacity-70">
                     {formatTime(message.timestamp)}
                   </span>
