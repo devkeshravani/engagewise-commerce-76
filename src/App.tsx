@@ -9,6 +9,7 @@ import NotFound from "./pages/NotFound";
 import ProductDetail from "./pages/ProductDetail";
 import ProductsPage from "./pages/ProductsPage";
 import Cart from "./pages/Cart";
+import Wishlist from "./pages/Wishlist";
 import Login from "./pages/Login";
 import Account from "./pages/Account";
 import { CartProvider } from "@/lib/CartContext";
@@ -27,6 +28,7 @@ const App = () => (
             <Route path="/products" element={<ProductsPage />} />
             <Route path="/product/:id" element={<ProductDetail />} />
             <Route path="/cart" element={<Cart />} />
+            <Route path="/wishlist" element={<Wishlist />} />
             <Route path="/login" element={<Login />} />
             <Route path="/account" element={<Account />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

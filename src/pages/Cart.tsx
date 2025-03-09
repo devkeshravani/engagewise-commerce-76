@@ -6,7 +6,20 @@ import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import Chatbot from '@/components/ui/Chatbot';
 import ProductCard from '@/components/ui/ProductCard';
-import { getFeaturedProducts, Product } from '@/lib/data';
+import { getFeaturedProducts, Product, products } from '@/lib/data';
+import { fetchCartItems } from '@/lib/services';
+import { useCart } from '@/lib/CartContext';
+import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { getSessionId } from '@/lib/session';
+
+interface CartItemData {
+  id: string;
+  product_id: string;
+  quantity: number;
+  color: string;
+  size: string;
+}
 
 const CartItem = ({ product, quantity, color, size, onRemove, onUpdateQuantity }: {
   product: Product;
@@ -79,43 +92,154 @@ const Cart = () => {
     quantity: number;
     color: string;
     size: string;
+    id: string;
   }[]>([]);
   const [recommendedProducts, setRecommendedProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const { updateCounts } = useCart();
   
-  useEffect(() => {
-    // In a real app, this would fetch cart from API or localStorage
-    // For demo, we'll add a few sample items
-    const sampleProducts = getFeaturedProducts(3);
-    const sampleCart = sampleProducts.map(product => ({
-      product,
-      quantity: Math.floor(Math.random() * 2) + 1,
-      color: product.colors[0],
-      size: product.sizes[0]
-    }));
-    
-    setCartItems(sampleCart);
+  const loadCartData = async () => {
+    setIsLoading(true);
+    try {
+      const cartData = await fetchCartItems();
+      
+      // Map cart items to products
+      const cartWithProducts = cartData.map((item: CartItemData) => {
+        const product = products.find(p => p.id === item.product_id);
+        if (!product) {
+          console.error(`Product not found for ID: ${item.product_id}`);
+          return null;
+        }
+        
+        return {
+          id: item.id,
+          product,
+          quantity: item.quantity,
+          color: item.color || product.colors[0],
+          size: item.size || product.sizes[0]
+        };
+      }).filter(Boolean);
+      
+      setCartItems(cartWithProducts);
+    } catch (error) {
+      console.error("Error loading cart:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load your cart. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
     
     // Get recommended products
     setRecommendedProducts(getFeaturedProducts(4));
-    
+  };
+  
+  useEffect(() => {
+    loadCartData();
     // Scroll to top on page load
     window.scrollTo(0, 0);
   }, []);
   
-  const removeFromCart = (index: number) => {
-    const newCart = [...cartItems];
-    newCart.splice(index, 1);
-    setCartItems(newCart);
+  const removeFromCart = async (id: string) => {
+    const sessionId = getSessionId();
+    
+    try {
+      const { error } = await supabase
+        .from('cart_items')
+        .delete()
+        .eq('id', id)
+        .eq('session_id', sessionId);
+        
+      if (error) {
+        throw error;
+      }
+      
+      // Update local state
+      const newCart = cartItems.filter(item => item.id !== id);
+      setCartItems(newCart);
+      
+      // Update cart count in header
+      updateCounts();
+      
+      toast({
+        title: "Item removed",
+        description: "Product has been removed from your cart",
+      });
+    } catch (error) {
+      console.error("Error removing item:", error);
+      toast({
+        title: "Error",
+        description: "Failed to remove item. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
   
-  const updateQuantity = (index: number, newQuantity: number) => {
-    const newCart = [...cartItems];
-    newCart[index].quantity = newQuantity;
-    setCartItems(newCart);
+  const updateQuantity = async (id: string, newQuantity: number) => {
+    const sessionId = getSessionId();
+    
+    try {
+      const { error } = await supabase
+        .from('cart_items')
+        .update({ quantity: newQuantity })
+        .eq('id', id)
+        .eq('session_id', sessionId);
+        
+      if (error) {
+        throw error;
+      }
+      
+      // Update local state
+      const newCart = cartItems.map(item => 
+        item.id === id ? { ...item, quantity: newQuantity } : item
+      );
+      setCartItems(newCart);
+      
+      // Update cart count in header
+      updateCounts();
+    } catch (error) {
+      console.error("Error updating quantity:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update quantity. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
   
-  const clearCart = () => {
-    setCartItems([]);
+  const clearCart = async () => {
+    const sessionId = getSessionId();
+    
+    try {
+      const { error } = await supabase
+        .from('cart_items')
+        .delete()
+        .eq('session_id', sessionId);
+        
+      if (error) {
+        throw error;
+      }
+      
+      // Update local state
+      setCartItems([]);
+      
+      // Update cart count in header
+      updateCounts();
+      
+      toast({
+        title: "Cart cleared",
+        description: "All items have been removed from your cart",
+      });
+    } catch (error) {
+      console.error("Error clearing cart:", error);
+      toast({
+        title: "Error",
+        description: "Failed to clear cart. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
   
   // Calculate cart totals
@@ -139,7 +263,12 @@ const Cart = () => {
           
           <h1 className="text-3xl font-medium mb-8">Your Shopping Cart</h1>
           
-          {cartItems.length > 0 ? (
+          {isLoading ? (
+            <div className="text-center py-12">
+              <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+              <p>Loading your cart...</p>
+            </div>
+          ) : cartItems.length > 0 ? (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
               {/* Cart Items */}
               <div className="lg:col-span-2">
@@ -154,15 +283,15 @@ const Cart = () => {
                 </div>
                 
                 <div className="bg-white rounded-lg shadow-sm p-6">
-                  {cartItems.map((item, index) => (
+                  {cartItems.map((item) => (
                     <CartItem 
-                      key={`${item.product.id}-${item.color}-${item.size}`}
+                      key={item.id}
                       product={item.product}
                       quantity={item.quantity}
                       color={item.color}
                       size={item.size}
-                      onRemove={() => removeFromCart(index)}
-                      onUpdateQuantity={(newQuantity) => updateQuantity(index, newQuantity)}
+                      onRemove={() => removeFromCart(item.id)}
+                      onUpdateQuantity={(newQuantity) => updateQuantity(item.id, newQuantity)}
                     />
                   ))}
                 </div>

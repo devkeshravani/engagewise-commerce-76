@@ -1,6 +1,6 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { fetchCartItems, getCartItemCount, getWishlistItemCount } from './services';
+import { fetchCartItems, fetchWishlistItems, getCartItemCount, getWishlistItemCount } from './services';
 
 interface CartContextType {
   cartCount: number;
