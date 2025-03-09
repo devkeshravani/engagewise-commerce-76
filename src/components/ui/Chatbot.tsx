@@ -14,6 +14,7 @@ import {
   addToWishlist,
   isInWishlist,
   fetchWishlistItems,
+  removeFromWishlist,
 } from '@/lib/services';
 
 // Define categories and actions for the chatbot
@@ -332,7 +333,7 @@ const Chatbot = () => {
     setIsProactiveMode(false);
     const lowercaseInput = userInput.toLowerCase();
     
-    // Navigation & Page Actions
+    // Navigation & Page Actions - now executed immediately
     if (lowercaseInput.includes('open my cart') || lowercaseInput.includes('go to cart')) {
       navigate('/cart');
       sendBotResponse("Taking you to your cart now!");
@@ -364,38 +365,17 @@ const Chatbot = () => {
       handleCurrentProductToWishlist();
     }
     else if (location.pathname.includes('/product/') && 
-            (lowercaseInput.includes('customer reviews') || lowercaseInput.includes('show reviews'))) {
-      // Scroll to reviews section
-      const reviewsSection = document.getElementById('product-reviews');
-      if (reviewsSection) {
-        reviewsSection.scrollIntoView({ behavior: 'smooth' });
-        sendBotResponse("Here are the customer reviews for this product!");
-      } else {
-        sendBotResponse("I couldn't find the reviews section. Please scroll down to see reviews.");
-      }
+            (lowercaseInput.includes('customer reviews') || lowercaseInput.includes('show reviews') || lowercaseInput.includes('show me reviews'))) {
+      // Scroll to reviews section and change to reviews tab
+      scrollToProductReviews();
+    }
+    else if (location.pathname.includes('/product/') && 
+            (lowercaseInput.includes('similar products') || lowercaseInput.includes('show me similar'))) {
+      scrollToSimilarProducts();
     }
     else if (location.pathname.includes('/product/') && 
             (lowercaseInput.includes('different color') || lowercaseInput.includes('change color'))) {
-      // Find and click a different color option
-      const colorButtons = document.querySelectorAll('[data-color]');
-      if (colorButtons.length > 1) {
-        // Find a color that's not currently selected
-        let selectedIndex = -1;
-        colorButtons.forEach((button, index) => {
-          if ((button as HTMLElement).dataset.selected === 'true') {
-            selectedIndex = index;
-          }
-        });
-        
-        // Choose the next color in the list
-        const nextIndex = (selectedIndex + 1) % colorButtons.length;
-        (colorButtons[nextIndex] as HTMLElement).click();
-        
-        const colorName = (colorButtons[nextIndex] as HTMLElement).dataset.color || 'different';
-        sendBotResponse(`I've changed the color to ${colorName} for you!`);
-      } else {
-        sendBotResponse("I couldn't find other color options for this product.");
-      }
+      changeProductColor();
     }
     
     // Support Responses - Give direct answers instead of asking follow-up questions
@@ -438,6 +418,29 @@ Orders placed before 2 PM EST will ship the same day. All orders include trackin
 
 Our support team typically responds within 24 hours. For urgent matters, we recommend using phone or live chat for the fastest assistance.`);
     }
+    else if (lowercaseInput.includes('show me faqs') || lowercaseInput.includes('faqs')) {
+      sendBotResponse(`Frequently Asked Questions:
+
+1. How do I track my order?
+   • Visit your account page > Order History > Track Order
+   • Or use the tracking number sent in your shipping confirmation email
+
+2. What is your return policy?
+   • We accept returns within 30 days of purchase
+   • Items must be unworn with original tags attached
+
+3. Do you ship internationally?
+   • Yes, we ship to over 50 countries
+   • International shipping costs vary by location
+
+4. How do I redeem a gift card?
+   • Enter the gift card code at checkout in the "Gift Card" field
+   • The balance will be automatically applied to your order
+
+5. Do you offer price matching?
+   • We'll match the price if you find the same item for less elsewhere
+   • Contact customer service with proof of the lower price`);
+    }
     
     // Personalized Sections with Direct Answers
     else if (lowercaseInput.includes('recommendations')) {
@@ -467,19 +470,19 @@ Our support team typically responds within 24 hours. For urgent matters, we reco
     
     // General shopping assistance
     else if (lowercaseInput.includes('find a gift')) {
-      sendBotResponse("I'd be happy to help you find a gift! Could you tell me who it's for and what's your budget?");
+      handleGiftIdeas();
     }
     else if (lowercaseInput.includes('track my order') || lowercaseInput.includes('order status')) {
-      sendBotResponse("To track your order, please provide your order number or email address used for the purchase.");
+      handleOrderTracking();
     }
     else if (lowercaseInput.includes('return') || lowercaseInput.includes('exchange')) {
-      sendBotResponse("Our return policy allows returns within 30 days of purchase. Would you like me to help you start a return process?");
+      handleReturnProcess();
     }
     else if (lowercaseInput.includes('discount') || lowercaseInput.includes('promo code')) {
-      sendBotResponse("Please enter your discount code, and I'll help you apply it to your order.");
+      handleDiscountCode();
     }
     else if (lowercaseInput.includes('nearest store') || lowercaseInput.includes('store location')) {
-      sendBotResponse("To find the nearest store, I need your location. Could you share your city or zip code?");
+      handleStoreLocator();
     }
     
     // Fallback for unrecognized commands - more helpful than before
@@ -515,6 +518,74 @@ Our support team typically responds within 24 hours. For urgent matters, we reco
     }, 600);
   };
 
+  // Enhanced product-specific actions
+  const scrollToProductReviews = () => {
+    // First try to find and click the reviews tab
+    const reviewsTab = document.querySelector('[value="reviews"]');
+    if (reviewsTab) {
+      (reviewsTab as HTMLElement).click();
+    }
+    
+    // Then scroll to the reviews section
+    setTimeout(() => {
+      const reviewsSection = document.querySelector('[value="reviews"][role="tabpanel"]');
+      if (reviewsSection) {
+        reviewsSection.scrollIntoView({ behavior: 'smooth' });
+        sendBotResponse("Here are the customer reviews for this product!");
+      } else {
+        sendBotResponse("I couldn't find the reviews section. Please scroll down to see reviews.");
+      }
+    }, 300);
+  };
+
+  const scrollToSimilarProducts = () => {
+    const similarProductsSection = document.querySelector('.container h2');
+    if (similarProductsSection && similarProductsSection.textContent?.includes('You Might Also Like')) {
+      similarProductsSection.scrollIntoView({ behavior: 'smooth' });
+      sendBotResponse("Here are some similar products you might like!");
+    } else {
+      sendBotResponse("I couldn't find similar products. Let me help you search for alternatives.");
+    }
+  };
+
+  const changeProductColor = () => {
+    // Find and click a different color option
+    const colorButtons = document.querySelectorAll('[data-color]');
+    if (colorButtons.length > 1) {
+      // Find a color that's not currently selected
+      let selectedIndex = -1;
+      colorButtons.forEach((button, index) => {
+        if ((button as HTMLElement).dataset.selected === 'true') {
+          selectedIndex = index;
+        }
+      });
+      
+      // Choose the next color in the list
+      const nextIndex = (selectedIndex + 1) % colorButtons.length;
+      (colorButtons[nextIndex] as HTMLElement).click();
+      
+      const colorName = (colorButtons[nextIndex] as HTMLElement).dataset.color || 'different';
+      sendBotResponse(`I've changed the color to ${colorName} for you!`);
+    } else {
+      // Look for normal color selection buttons if data-color attributes aren't found
+      const colorSelectionButtons = document.querySelectorAll('.px-4.py-2.rounded-md.border');
+      if (colorSelectionButtons.length > 1) {
+        // Find a color that's not currently selected (doesn't have primary class)
+        for (let i = 0; i < colorSelectionButtons.length; i++) {
+          const button = colorSelectionButtons[i] as HTMLElement;
+          if (!button.classList.contains('border-primary')) {
+            button.click();
+            const colorName = button.textContent || 'different';
+            sendBotResponse(`I've changed the color to ${colorName} for you!`);
+            return;
+          }
+        }
+      }
+      
+      sendBotResponse("I couldn't find other color options for this product.");
+    }
+  };
+
   // Function to handle adding the current product to cart
   const handleCurrentProductToCart = async () => {
     if (!currentProductDetails) {
@@ -523,12 +594,34 @@ Our support team typically responds within 24 hours. For urgent matters, we reco
     }
 
     try {
-      // Add to cart using the first color and size options
+      // Get currently selected color and size from the UI if possible
+      let selectedColor = currentProductDetails.colors[0];
+      let selectedSize = currentProductDetails.sizes[0];
+      
+      // Try to find the selected color from the UI
+      const colorButtons = document.querySelectorAll('.border-primary');
+      colorButtons.forEach((button) => {
+        const colorText = button.textContent?.trim();
+        if (colorText && currentProductDetails.colors.includes(colorText)) {
+          selectedColor = colorText;
+        }
+      });
+      
+      // Try to find the selected size from the UI
+      const sizeButtons = document.querySelectorAll('.border-primary');
+      sizeButtons.forEach((button) => {
+        const sizeText = button.textContent?.trim();
+        if (sizeText && currentProductDetails.sizes.includes(sizeText)) {
+          selectedSize = sizeText;
+        }
+      });
+      
+      // Add to cart using the selected color and size options
       const success = await addToCart(
         currentProductDetails.id,
         1,
-        currentProductDetails.colors[0],
-        currentProductDetails.sizes[0]
+        selectedColor,
+        selectedSize
       );
       
       if (success) {
@@ -576,6 +669,108 @@ Our support team typically responds within 24 hours. For urgent matters, we reco
       console.error("Error adding to wishlist:", error);
       sendBotResponse("There was a problem adding this item to your wishlist.");
     }
+  };
+
+  // Assistance features
+  const handleGiftIdeas = () => {
+    // Display gift recommendations
+    const giftMessage = `Here are some gift ideas based on popular items:
+
+1. Leather Wallet - $45.99
+   Perfect for professionals and minimalists
+
+2. Aromatherapy Candle Set - $32.99
+   Great for relaxation and home decor
+
+3. Wireless Earbuds - $89.99
+   For music lovers and tech enthusiasts
+
+4. Premium Coffee Sampler - $29.99
+   Ideal for coffee connoisseurs
+
+Would you like more specific recommendations? I can help you find the perfect gift based on age, interests, and budget.`;
+
+    sendBotResponse(giftMessage);
+  };
+
+  const handleOrderTracking = () => {
+    // Simulated order tracking information
+    const trackingMessage = `Here's your order tracking information:
+
+Order #12346
+Status: In Transit
+Shipped: July 5, 2023
+Estimated Delivery: July 12, 2023
+
+Tracking Progress:
+✅ Order Placed (July 2, 2023)
+✅ Order Processed (July 4, 2023)
+✅ Shipped (July 5, 2023)
+🔄 In Transit
+⬜ Out for Delivery
+⬜ Delivered
+
+Your package is currently in Los Angeles, CA. You can get real-time updates using tracking number TRK4567890 on our shipping partner's website.`;
+
+    sendBotResponse(trackingMessage);
+  };
+
+  const handleReturnProcess = () => {
+    // Simulated return process initiation
+    const returnMessage = `I've started the return process for you. Here's what you need to do:
+
+1. Package the item in its original packaging if possible
+2. Print the return label I've sent to your email
+3. Drop off the package at any postal service location
+
+Return Details:
+• Return ID: RTN87654321
+• Return shipping is free
+• Your refund will be processed within 5-7 business days after we receive the item
+
+Do you need help with anything else regarding your return?`;
+
+    sendBotResponse(returnMessage);
+  };
+
+  const handleDiscountCode = () => {
+    // Simulated discount code application
+    const discountMessage = `I've applied discount code SUMMER20 to your cart!
+
+Original Total: $125.99
+Discount (20%): -$25.20
+New Total: $100.79
+
+The discount has been applied to all eligible items in your cart. Would you like to proceed to checkout now?`;
+
+    sendBotResponse(discountMessage);
+  };
+
+  const handleStoreLocator = () => {
+    // Simulated store locator
+    const storeMessage = `Here are the nearest stores to you:
+
+1. Downtown Store
+   123 Main Street, New York, NY
+   Open: 10AM-9PM (Currently Open)
+   Phone: (212) 555-1234
+   Distance: 1.2 miles
+
+2. Westside Mall Location
+   456 Park Avenue, New York, NY
+   Open: 11AM-7PM (Currently Open)
+   Phone: (212) 555-5678
+   Distance: 2.5 miles
+
+3. Eastside Fashion Center
+   789 Broadway, New York, NY
+   Open: 10AM-8PM (Currently Open)
+   Phone: (212) 555-9012
+   Distance: 3.8 miles
+
+Would you like directions to any of these locations?`;
+
+    sendBotResponse(storeMessage);
   };
 
   // Handle wishlist-specific actions when on the wishlist page
@@ -637,10 +832,22 @@ Our support team typically responds within 24 hours. For urgent matters, we reco
   };
 
   const handleSuggestedQuestion = (question: string) => {
+    // Execute action immediately without requiring user to press send
+    executeAction(question);
+    
+    // Also update UI to show what was clicked
     setInput(question);
-    // Add a small delay to make it feel more natural
+    setMessages(prev => [
+      ...prev,
+      {
+        text: question,
+        sender: 'user',
+        timestamp: new Date()
+      }
+    ]);
+    
     setTimeout(() => {
-      handleSend();
+      setInput('');
     }, 300);
   };
 
@@ -653,9 +860,22 @@ Our support team typically responds within 24 hours. For urgent matters, we reco
   };
 
   const handleActionSelect = (action: string) => {
+    // Execute action immediately without requiring user to press send
+    executeAction(action);
+    
+    // Also update UI to show what was clicked
     setInput(action);
+    setMessages(prev => [
+      ...prev,
+      {
+        text: action,
+        sender: 'user',
+        timestamp: new Date()
+      }
+    ]);
+    
     setTimeout(() => {
-      handleSend();
+      setInput('');
     }, 300);
   };
 

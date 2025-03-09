@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Star, ChevronRight, ShoppingBag, Heart } from 'lucide-react';
@@ -173,13 +172,13 @@ const ProductDetail = () => {
             <Link to="/products" className="text-gray-500 hover:text-primary transition">Products</Link>
             <ChevronRight className="w-4 h-4 mx-2 text-gray-400" />
             <Link 
-              to={`/products?category=${product.category.toLowerCase()}`} 
+              to={`/products?category=${product?.category.toLowerCase()}`} 
               className="text-gray-500 hover:text-primary transition"
             >
-              {product.category}
+              {product?.category}
             </Link>
             <ChevronRight className="w-4 h-4 mx-2 text-gray-400" />
-            <span className="text-gray-900 font-medium">{product.name}</span>
+            <span className="text-gray-900 font-medium">{product?.name}</span>
           </nav>
         </div>
         
@@ -191,13 +190,13 @@ const ProductDetail = () => {
               <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
                 <img 
                   src={mainImage} 
-                  alt={product.name}
+                  alt={product?.name}
                   className="w-full h-full object-cover"
                 />
               </div>
               
               <div className="grid grid-cols-4 gap-2">
-                {product.images.map((image, index) => (
+                {product?.images.map((image, index) => (
                   <button
                     key={index}
                     className={`aspect-square bg-gray-100 rounded-md overflow-hidden border-2 transition ${
@@ -207,7 +206,7 @@ const ProductDetail = () => {
                   >
                     <img 
                       src={image} 
-                      alt={`${product.name} - view ${index + 1}`}
+                      alt={`${product?.name} - view ${index + 1}`}
                       className="w-full h-full object-cover"
                     />
                   </button>
@@ -218,14 +217,14 @@ const ProductDetail = () => {
             {/* Product Info */}
             <div className="space-y-6">
               <div>
-                <h1 className="text-3xl font-medium">{product.name}</h1>
+                <h1 className="text-3xl font-medium">{product?.name}</h1>
                 <div className="mt-2">
                   {renderStars()}
                 </div>
               </div>
               
               <div className="flex items-center">
-                {product.oldPrice ? (
+                {product?.oldPrice ? (
                   <div className="flex items-center space-x-3">
                     <span className="text-2xl font-medium text-primary">${product.price.toFixed(2)}</span>
                     <span className="text-xl text-gray-500 line-through">${product.oldPrice.toFixed(2)}</span>
@@ -240,17 +239,19 @@ const ProductDetail = () => {
               
               <div>
                 <h3 className="text-sm font-medium mb-2">Description</h3>
-                <p className="text-gray-700">{product.description}</p>
+                <p className="text-gray-700">{product?.description}</p>
               </div>
               
               {/* Color Selection */}
               <div>
                 <h3 className="text-sm font-medium mb-2">Color: <span className="font-normal">{selectedColor}</span></h3>
                 <div className="flex flex-wrap gap-2">
-                  {product.colors.map((color) => (
+                  {product?.colors.map((color) => (
                     <button
                       key={color}
                       onClick={() => handleColorSelect(color)}
+                      data-color={color}
+                      data-selected={selectedColor === color ? 'true' : 'false'}
                       className={`px-4 py-2 rounded-md border transition ${
                         selectedColor === color 
                           ? 'border-primary bg-primary/5 text-primary' 
@@ -270,10 +271,12 @@ const ProductDetail = () => {
                   <button className="text-sm text-primary hover:underline">Size Guide</button>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {product.sizes.map((size) => (
+                  {product?.sizes.map((size) => (
                     <button
                       key={size}
                       onClick={() => setSelectedSize(size)}
+                      data-size={size}
+                      data-selected={selectedSize === size ? 'true' : 'false'}
                       className={`w-14 h-10 rounded-md border flex items-center justify-center transition ${
                         selectedSize === size 
                           ? 'border-primary bg-primary/5 text-primary' 
@@ -312,6 +315,7 @@ const ProductDetail = () => {
                 <button 
                   className="flex-1 px-6 py-3 bg-primary text-white rounded-md hover:bg-primary/90 transition flex items-center justify-center"
                   onClick={handleAddToCart}
+                  id="add-to-cart-button"
                 >
                   <ShoppingBag className="w-5 h-5 mr-2" />
                   Add to Cart
@@ -324,6 +328,7 @@ const ProductDetail = () => {
                   }`}
                   onClick={handleAddToWishlist}
                   disabled={inWishlist}
+                  id="add-to-wishlist-button"
                 >
                   <Heart className={`w-5 h-5 mr-2 ${inWishlist ? 'fill-pink-500 text-pink-500' : ''}`} />
                   {inWishlist ? 'In Wishlist' : 'Add to Wishlist'}
@@ -333,7 +338,7 @@ const ProductDetail = () => {
               {/* Product Tags */}
               <div className="pt-4 border-t">
                 <div className="flex flex-wrap gap-2">
-                  {product.tags.map((tag) => (
+                  {product?.tags.map((tag) => (
                     <Link 
                       key={tag}
                       to={`/products?tag=${tag}`}
@@ -350,17 +355,17 @@ const ProductDetail = () => {
         
         {/* Product Details Tabs */}
         <section className="container py-12">
-          <Tabs defaultValue="reviews">
+          <Tabs defaultValue="description" id="product-tabs">
             <TabsList className="w-full max-w-md mx-auto">
               <TabsTrigger value="description" className="flex-1">Description</TabsTrigger>
-              <TabsTrigger value="reviews" className="flex-1">Reviews ({reviews.length || product.reviews.length})</TabsTrigger>
+              <TabsTrigger value="reviews" className="flex-1" id="reviews-tab">Reviews ({reviews.length || product?.reviews.length})</TabsTrigger>
               <TabsTrigger value="shipping" className="flex-1">Shipping & Returns</TabsTrigger>
             </TabsList>
             
             <TabsContent value="description" className="mt-6">
               <div className="max-w-3xl mx-auto bg-white p-6 rounded-lg">
                 <h3 className="text-xl font-medium mb-4">Product Details</h3>
-                <p className="mb-4">{product.description}</p>
+                <p className="mb-4">{product?.description}</p>
                 <div className="space-y-4">
                   <div>
                     <h4 className="font-medium">Materials</h4>
@@ -374,7 +379,7 @@ const ProductDetail = () => {
               </div>
             </TabsContent>
             
-            <TabsContent value="reviews" className="mt-6">
+            <TabsContent value="reviews" className="mt-6" id="product-reviews">
               <div className="max-w-3xl mx-auto">
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-xl font-medium">Customer Reviews</h3>
@@ -418,7 +423,7 @@ const ProductDetail = () => {
                   ))}
                   
                   {/* Fall back to sample reviews if no database reviews */}
-                  {reviews.length === 0 && product.reviews.map((review) => (
+                  {reviews.length === 0 && product?.reviews.map((review) => (
                     <div key={review.id} className="bg-white p-6 rounded-lg">
                       <div className="flex justify-between mb-2">
                         <div className="flex space-x-1">
@@ -463,11 +468,11 @@ const ProductDetail = () => {
         </section>
         
         {/* Similar Products */}
-        <section className="container py-12 border-t">
+        <section className="container py-12 border-t" id="similar-products">
           <h2 className="text-2xl font-medium mb-8 text-center">You Might Also Like</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {products
-              .filter(p => p.category === product.category && p.id !== product.id)
+              .filter(p => p?.category === product?.category && p.id !== product?.id)
               .slice(0, 4)
               .map(relatedProduct => (
                 <Link 
